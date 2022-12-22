@@ -1,4 +1,3 @@
 rootProject.name = 'exchangerater'
-include 'webscraper'
-include 'webservicecontroller'
+
 
