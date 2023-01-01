@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'war'
+}
+
+group 'org.${project.name}'
+version '${versionNumber}'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'javax:javaee-web-api:8.0'
+    implementation 'net.sourceforge.htmlunit:htmlunit:2.67.0'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+def applicationName = project.name + '-' + versionNumber
+def applicationWarName =  applicationName + '.war'
+def applicationWarFullPath = applicationWarFileUri + '\\' + applicationWarName
+
+task startPostgresqlServer(type: Exec) {
+    commandLine 'pg_ctl', '-D', postgresqlDataUri, 'start'
+}
+
+task stopPostgresqlServer(type: Exec) {
+    commandLine 'pg_ctl', '-D', postgresqlDataUri, 'stop'
+}
+
+task startPayaraServer(type: Exec) {
+    workingDir payaraServerUri
+    commandLine 'cmd', '/c', 'asadmin', 'start-domain'
+}
+
+task stopPayaraServer(type: Exec) {
+    workingDir payaraServerUri
+    commandLine 'cmd', '/c', 'asadmin', 'stop-domain'
+}
+
+task buildAndDeploy(dependsOn: 'war', type: Exec) {
+    workingDir payaraServerUri
+    commandLine 'cmd', '/c', 'asadmin', 'deploy', applicationWarFullPath
+}
+
+task undeploy(type: Exec) {
+    workingDir payaraServerUri
+    commandLine 'cmd', '/c', 'asadmin', 'undeploy', applicationName
+}
